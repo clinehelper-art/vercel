@@ -1,0 +1,68 @@
+function detectExaggeration(statement: string) {
+  const exaggerations = ['always', 'never', 'every time', 'none', 'all'];
+  return exaggerations.filter(word => statement.toLowerCase().includes(word));
+}
+
+function detectPersonalAttack(statement: string) {
+  // Simple keyword-based detection. Expand as needed!
+  const attacks = ['stupid', 'lazy', 'useless', 'idiot', 'crazy', 'worthless', 'dumb'];
+  return attacks.filter(word => statement.toLowerCase().includes(word));
+}
+
+function detectDismissiveness(statement: string) {
+  const dismissive = ['whatever', "i don't care", 'doesn’t matter', 'irrelevant', 'stop whining', 'get over it'];
+  return dismissive.filter(word => statement.toLowerCase().includes(word));
+}
+
+function detectUnfairBlame(statement: string) {
+  const blame = [
+    'it’s your fault',
+    'you always',
+    'you never',
+    'if you hadn’t',
+    'because of you'
+  ];
+  return blame.filter(word => statement.toLowerCase().includes(word));
+}
+
+function detectUnfairness(statement: string) {
+  const reasons: string[] = [];
+  if (detectExaggeration(statement).length) reasons.push('overgeneralization');
+  if (detectPersonalAttack(statement).length) reasons.push('personal attack');
+  if (detectDismissiveness(statement).length) reasons.push('dismissive language');
+  if (detectUnfairBlame(statement).length) reasons.push('unfair blame');
+  return reasons;
+}
+
+export function analyzeArguments(partnerA: string, partnerB: string) {
+  const findings: string[] = [];
+
+  // Unfairness detection
+  const aUnfair = detectUnfairness(partnerA);
+  const bUnfair = detectUnfairness(partnerB);
+
+  if (aUnfair.length)
+    findings.push(`Partner A is being unfair by: ${aUnfair.join(', ')}.`);
+  if (bUnfair.length)
+    findings.push(`Partner B is being unfair by: ${bUnfair.join(', ')}.`);
+
+  // Exaggeration detection
+  const aEx = detectExaggeration(partnerA);
+  const bEx = detectExaggeration(partnerB);
+
+  if (aEx.length)
+    findings.push(`Partner A uses possible exaggeration(s): ${aEx.join(', ')}. Try to be more specific.`);
+  if (bEx.length)
+    findings.push(`Partner B uses possible exaggeration(s): ${bEx.join(', ')}. Try to be more specific.`);
+
+  // Specific counter-example detection
+  if (partnerA.match(/never|always/) && partnerB.match(/yesterday|last week|on Monday|recently/)) {
+    findings.push("Partner B provides a specific example that counters Partner A's generalization.");
+  }
+
+  findings.push("Recommendation: Avoid unfair tactics such as personal attacks, dismissiveness, exaggerations, and blaming. Focus on facts, feelings, and specific examples. Listen and reflect before responding.");
+
+  if (findings.length === 1) findings.push('No major communication issues detected. Try being specific and empathetic.');
+
+  return findings;
+}
